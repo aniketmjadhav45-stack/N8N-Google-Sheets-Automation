@@ -1,0 +1,666 @@
+{
+  "name": "Flow 3 – Sync Developer Sheet → Master",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2053539443,
+          "mode": "list",
+          "cachedResultName": "Dev_MK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=2053539443"
+        },
+        "event": "rowUpdate",
+        "options": {
+          "columnsToWatch": [
+            "Status",
+            "Completed?",
+            "DollarValue",
+            "NotesLatestUpdate"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d3c0e903-784f-4eda-b77b-30d12c56da54",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "h2FWLKxESh63XXUb",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2053539443,
+          "mode": "list",
+          "cachedResultName": "Dev_MK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=2053539443"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ProjectID",
+              "lookupValue": "={{ $json.ProjectID }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "669d45ad-060a-42e3-9478-1c4191845d66",
+      "name": "Dev_MK",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmAFpCZWUYBKIMPI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1225426978,
+          "mode": "list",
+          "cachedResultName": "master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=1225426978"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ProjectID",
+              "lookupValue": "={{ $('Google Sheets Trigger').item.json.ProjectID }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "b6b8a774-f6ac-4d4c-aabe-bee8eb1f0d64",
+      "name": "master sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmAFpCZWUYBKIMPI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const dev = items[0].json;\n// get master via $items(\"Get Master Row\")[0].json if needed\n\nlet takeoffReceivedDate = \"\"; // set when Completed? == \"Yes\"\nif (dev[\"Completed?\"] === \"Yes\") {\n  const now = new Date();\n  takeoffReceivedDate = now.toISOString().slice(0,10);\n}\n\nreturn [{\n  json: {\n    projectId: dev.ProjectID,\n    status: dev.Status,\n    completed: dev[\"Completed?\"],\n    dollarValue: dev.DollarValue,\n    notes: dev.NotesLatestUpdate,\n    takeoffReceivedDate\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "1a82b544-5a86-4e61-b6b2-4f993926a924",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1225426978,
+          "mode": "list",
+          "cachedResultName": "master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=1225426978"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ProjectID": "={{ $json.projectId }}",
+            "Status": "={{ $json.status }}",
+            "Completed?": "={{ $json.completed }}",
+            "DollarValue": "={{ $json.dollarValue }}",
+            "NotesLatestUpdate": "={{ $json.notes }}",
+            "TakeoffReceivedDate": "={{ $json.takeoffReceivedDate }}",
+            "LastUpdated": "={{$now}}"
+          },
+          "matchingColumns": [
+            "ProjectID"
+          ],
+          "schema": [
+            {
+              "id": "ProjectID",
+              "displayName": "ProjectID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ReferredBy",
+              "displayName": "ReferredBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PricingBy",
+              "displayName": "PricingBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PlatformName",
+              "displayName": "PlatformName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "WebLink",
+              "displayName": "WebLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Trigger",
+              "displayName": "Trigger",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GC",
+              "displayName": "GC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GCRep",
+              "displayName": "GCRep",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GCRepContact",
+              "displayName": "GCRepContact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectName",
+              "displayName": "ProjectName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ScopeOfProject",
+              "displayName": "ScopeOfProject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectFiles",
+              "displayName": "ProjectFiles",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectDueDate",
+              "displayName": "ProjectDueDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TakeoffAssignedBy",
+              "displayName": "TakeoffAssignedBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TakeoffAssignedTo",
+              "displayName": "TakeoffAssignedTo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DateAssigned",
+              "displayName": "DateAssigned",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ExpAnticipatedDate",
+              "displayName": "ExpAnticipatedDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TakeoffReceivedDate",
+              "displayName": "TakeoffReceivedDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DollarValue",
+              "displayName": "DollarValue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Completed?",
+              "displayName": "Completed?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NotesLatestUpdate",
+              "displayName": "NotesLatestUpdate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LastUpdated",
+              "displayName": "LastUpdated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        0
+      ],
+      "id": "f4198ee3-76bd-4367-b017-4eaa5ab8146c",
+      "name": "master sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmAFpCZWUYBKIMPI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2053539443,
+          "mode": "list",
+          "cachedResultName": "Dev_MK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=2053539443"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ProjectID": "={{ $json.ProjectID }}",
+            "TakeoffReceivedDate": "={{ $json.TakeoffReceivedDate }}"
+          },
+          "matchingColumns": [
+            "ProjectID"
+          ],
+          "schema": [
+            {
+              "id": "ProjectID",
+              "displayName": "ProjectID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ProjectName",
+              "displayName": "ProjectName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectFiles",
+              "displayName": "ProjectFiles",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "WebLink",
+              "displayName": "WebLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GC",
+              "displayName": "GC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DateAssigned",
+              "displayName": "DateAssigned",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ExpAnticipatedDate",
+              "displayName": "ExpAnticipatedDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Completed?",
+              "displayName": "Completed?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TakeoffReceivedDate",
+              "displayName": "TakeoffReceivedDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DollarValue",
+              "displayName": "DollarValue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NotesLatestUpdate",
+              "displayName": "NotesLatestUpdate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LastUpdated",
+              "displayName": "LastUpdated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "0cf5467d-3ab5-409c-9cf4-c6fff991aba9",
+      "name": "Master sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmAFpCZWUYBKIMPI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Dev_MK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dev_MK": {
+      "main": [
+        [
+          {
+            "node": "master sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "master sheet": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "master sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "master sheet1": {
+      "main": [
+        [
+          {
+            "node": "Master sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1b5d32e1-4499-43ff-802e-52960f086476",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6e5ce962700dcc48be3f3eac86e9efe1991ad08e03083f3b246d6508b8e8c31b"
+  },
+  "id": "myHFuGifsgqRR1b5",
+  "tags": []
+}

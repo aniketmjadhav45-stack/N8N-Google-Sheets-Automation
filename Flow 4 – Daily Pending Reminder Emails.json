@@ -1,0 +1,241 @@
+{
+  "name": "Flow 4 – Daily Pending Reminder Emails",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "acfb0f12-2c60-45e7-9c0d-964917d1314f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1225426978,
+          "mode": "list",
+          "cachedResultName": "master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=1225426978"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "721949cd-3461-43ac-bf6b-c51264ca34cc",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmAFpCZWUYBKIMPI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = items.map(i => i.json);\n\n// TEMP: filter only by assigned dev, ignore status and dates\nconst open = rows.filter(r => (r.TakeoffAssignedTo || \"\") !== \"\");\n\nconst byDev = {};\nfor (const r of open) {\n  const dev = r.TakeoffAssignedTo;\n  if (!byDev[dev]) byDev[dev] = [];\n  byDev[dev].push(r);\n}\n\nreturn Object.keys(byDev).map(dev => ({\n  json: {\n    developer: dev,\n    projects: byDev[dev]\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "aa281b08-54ac-47e0-851f-27c2b0b72f7f",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1225426978,
+          "mode": "list",
+          "cachedResultName": "master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=1225426978"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "TakeoffAssignedTo",
+              "lookupValue": "={{ $json.projects[0].TakeoffAssignedTo }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        0
+      ],
+      "id": "25c8e5d3-058d-4c32-8f9f-42eee15bd77d",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmAFpCZWUYBKIMPI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = items.map(i => i.json);\n\n// TEMP: no filtering, just return all with basic fields\nreturn rows.map(r => ({\n  json: {\n    ProjectID: r.ProjectID,\n    ProjectName: r.ProjectName,\n    ProjectDueDate: r.ProjectDueDate,\n    ExpAnticipatedDate: r.ExpAnticipatedDate,\n    Status: r.Status,\n    TakeoffAssignedTo: r.TakeoffAssignedTo,\n    TakeoffReceivedDate: r.TakeoffReceivedDate\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "bbaf9b99-6a6a-40e6-bb4b-2282f2109a15",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = items[0].json;\n\n// Map developer → email\nlet to = \"\";\nswitch (r.TakeoffAssignedTo) {\n  case \"MK\":\n    to = \"mk@example.com\";\n    break;\n  case \"MD\":\n    to = \"md@example.com\";\n    break;\n  case \"LA\":\n    to = \"la@example.com\";\n    break;\n  // add others as needed\n  default:\n    to = \"admin@example.com\";\n}\n\nconst dev = r.TakeoffAssignedTo;\n\nconst body =\n  `Pending takeoff for ${dev}:\\n` +\n  `- ${r.ProjectID} | ${r.ProjectName} | ` +\n  `Due: ${r.ProjectDueDate || \"-\"} | ` +\n  `Expected: ${r.ExpAnticipatedDate || \"-\"} | ` +\n  `Status: ${r.Status}`;\n\nreturn [{\n  json: {\n    to,\n    subject: `Pending Takeoff – ${dev} – ${new Date().toISOString().slice(0,10)}`,\n    body\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "1d2767e9-1880-487e-8e98-a6ec91ca91bd",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "c5699823-7e3f-45b0-8fcb-6414f38bbb95",
+      "name": "Send a message",
+      "webhookId": "882da4a6-84c5-4007-851f-43d86d3eb626",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XgOOeKsddO5SnXZT",
+          "name": "Gmail account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "54b11c23-c96a-41ed-8256-6ff289fd583c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6e5ce962700dcc48be3f3eac86e9efe1991ad08e03083f3b246d6508b8e8c31b"
+  },
+  "id": "7qUxnoIvEmR1qZpM",
+  "tags": []
+}

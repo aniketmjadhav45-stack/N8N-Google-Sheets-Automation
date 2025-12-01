@@ -1,0 +1,599 @@
+{
+  "name": "flow-2 Assign Project to Developer.",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1225426978,
+          "mode": "list",
+          "cachedResultName": "master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=1225426978"
+        },
+        "event": "rowUpdate",
+        "options": {
+          "columnsToWatch": [
+            "TakeoffAssignedTo"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        32,
+        16
+      ],
+      "id": "d6ec84a3-e2e8-4ae3-9403-dc16212b3353",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "h2FWLKxESh63XXUb",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1225426978,
+          "mode": "list",
+          "cachedResultName": "master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=1225426978"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ProjectID",
+              "lookupValue": "={{ $json.ProjectID }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        256,
+        16
+      ],
+      "id": "53ef031f-c8dc-4ba6-9e6c-4268afac5fbd",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmAFpCZWUYBKIMPI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const row = items[0].json;\n\n// Read fields from master row (keys = column headers)\nconst projectId = row.ProjectID;\nconst projectName = row.ProjectName;\nconst projectFiles = row.ProjectFiles;\nconst webLink = row.WebLink;\nconst gc = row.GC;\nconst expAnticipated = row.ExpAnticipatedDate;\nconst assignedTo = row.TakeoffAssignedTo;\nlet dateAssigned = row.DateAssigned;\n\n// Set DateAssigned if empty\nif (!dateAssigned) {\n  const now = new Date();\n  dateAssigned = now.toISOString().slice(0, 10); // YYYY-MM-DD\n}\n\n// Decide developer sheet name\nlet devSheet = \"\";\nswitch (assignedTo) {\n  case \"MK\":\n    devSheet = \"Dev_MK\";\n    break;\n  // add more cases for MD, LA, Indiv1, Indiv2 later\n  default:\n    devSheet = \"\";\n}\n\nreturn [{\n  json: {\n    projectId,\n    projectName,\n    projectFiles,\n    webLink,\n    gc,\n    expAnticipated,\n    assignedTo,\n    dateAssigned,\n    devSheet\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        16
+      ],
+      "id": "46f0822c-d4d7-44c1-864f-daab4ac8ab03",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2053539443,
+          "mode": "list",
+          "cachedResultName": "Dev_MK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=2053539443"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ProjectID": "={{ $json.ProjectID }}",
+            "ProjectName": "={{ $('Code').item.json.projectName }}",
+            "ProjectFiles": "={{ $('Code').item.json.projectFiles }}",
+            "WebLink": "={{ $('Code').item.json.webLink }}",
+            "GC": "={{ $('Code').item.json.gc }}",
+            "DateAssigned": "={{ $('Code').item.json.dateAssigned }}",
+            "ExpAnticipatedDate": "={{ $('Code').item.json.expAnticipated }}",
+            "Status": "pending",
+            "Completed?": "no"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ProjectID",
+              "displayName": "ProjectID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectName",
+              "displayName": "ProjectName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectFiles",
+              "displayName": "ProjectFiles",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "WebLink",
+              "displayName": "WebLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GC",
+              "displayName": "GC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DateAssigned",
+              "displayName": "DateAssigned",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ExpAnticipatedDate",
+              "displayName": "ExpAnticipatedDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Completed?",
+              "displayName": "Completed?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TakeoffReceivedDate",
+              "displayName": "TakeoffReceivedDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DollarValue",
+              "displayName": "DollarValue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NotesLatestUpdate",
+              "displayName": "NotesLatestUpdate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LastUpdated",
+              "displayName": "LastUpdated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        928,
+        16
+      ],
+      "id": "2796d342-43d9-4531-ac60-8e60fb54eaa6",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmAFpCZWUYBKIMPI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58",
+          "mode": "list",
+          "cachedResultName": "Takeoff_Tracking_Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1225426978,
+          "mode": "list",
+          "cachedResultName": "master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EFDIjX7rpgw7A5xraILU-5kDIrxpT4wnufxWhKF_F58/edit#gid=1225426978"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ProjectID": "={{ $json.projectId }}",
+            "DateAssigned": "={{ $json.dateAssigned }}"
+          },
+          "matchingColumns": [
+            "ProjectID"
+          ],
+          "schema": [
+            {
+              "id": "ProjectID",
+              "displayName": "ProjectID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ReferredBy",
+              "displayName": "ReferredBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PricingBy",
+              "displayName": "PricingBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "PlatformName",
+              "displayName": "PlatformName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "WebLink",
+              "displayName": "WebLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Trigger",
+              "displayName": "Trigger",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GC",
+              "displayName": "GC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GCRep",
+              "displayName": "GCRep",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GCRepContact",
+              "displayName": "GCRepContact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectName",
+              "displayName": "ProjectName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ScopeOfProject",
+              "displayName": "ScopeOfProject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectFiles",
+              "displayName": "ProjectFiles",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ProjectDueDate",
+              "displayName": "ProjectDueDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TakeoffAssignedBy",
+              "displayName": "TakeoffAssignedBy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TakeoffAssignedTo",
+              "displayName": "TakeoffAssignedTo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DateAssigned",
+              "displayName": "DateAssigned",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ExpAnticipatedDate",
+              "displayName": "ExpAnticipatedDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "TakeoffReceivedDate",
+              "displayName": "TakeoffReceivedDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DollarValue",
+              "displayName": "DollarValue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Completed?",
+              "displayName": "Completed?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NotesLatestUpdate",
+              "displayName": "NotesLatestUpdate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LastUpdated",
+              "displayName": "LastUpdated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        704,
+        16
+      ],
+      "id": "2ff8ae33-62f5-40c8-8186-b4c18f9215a4",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mmAFpCZWUYBKIMPI",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "61adce45-731f-4ae5-b430-604977bc0179",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6e5ce962700dcc48be3f3eac86e9efe1991ad08e03083f3b246d6508b8e8c31b"
+  },
+  "id": "qdNtrIDmTvzFSE0t",
+  "tags": []
+}
